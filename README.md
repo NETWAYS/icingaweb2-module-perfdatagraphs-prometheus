@@ -8,6 +8,11 @@ This module requires the frontend module:
 
 - https://github.com/NETWAYS/icingaweb2-module-perfdatagraphs
 
+Other Icinga and Prometheus integrations we provide:
+
+* https://github.com/NETWAYS/check_prometheus
+* https://github.com/NETWAYS/icinga2-exporter
+
 ## Installation Requirements
 
 * PHP version ≥ 8.0
