@@ -56,7 +56,9 @@ class Prometheus
         array $excludeMetrics
     ): string {
         $q = '{';
-
+        // TODO: Should we support OTel style names for metrics and labels?
+        // e.g. state_check.perfdata and icinga2.host.name
+        // Would require a config option to toggle.
         $q .= '__name__=~"state_check_perfdata|state_check_threshold"';
         $q .= ', icinga2_command_name="' . $checkCommand . '"';
         $q .= ', icinga2_host_name="' . $hostName . '"';

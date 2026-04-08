@@ -16,4 +16,4 @@ Other Icinga and Prometheus integrations we provide:
 ## Installation Requirements
 
 * PHP version ≥ 8.0
-* Icinga2 OTLPWriter
+* Icinga2 OTLPMetricsWriter
