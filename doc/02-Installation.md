@@ -18,7 +18,7 @@
 | api_timeout          | HTTP timeout for the API in seconds. Should be higher than 0                                             | `10` (seconds)           |
 | api_max_data_points  | The maximum numbers of datapoints each series returns. Aggregation can be disabled by setting this to 0. | `10000`                  |
 | api_tls_insecure     | Skip the TLS verification                                                                                | `false` (unchecked)      |
-| api_auth_method     | Authentication method to use for the API                                                                  | `none (none|basic|token)`      |
+| api_auth_method     | Authentication method to use for the API                                                                  | none (none|basic|token) |
 | api_auth_username    | HTTP basic auth username                                                                                 |   |
 | api_auth_password    | HTTP basic auth password                                                                                 |   |
 | api_auth_tokentype   | Token type for the Authorization header                                                                  | `Bearer` |
