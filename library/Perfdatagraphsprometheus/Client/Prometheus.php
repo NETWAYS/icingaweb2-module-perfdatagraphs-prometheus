@@ -92,18 +92,18 @@ class Prometheus
     {
         $authOptions = [];
 
-        if ($this->auth['method'] == 'none') {
+        if ($this->auth['method'] === 'none') {
             return $authOptions;
         }
 
-        if ($this->auth['method'] == 'basic') {
+        if ($this->auth['method'] === 'basic') {
             $authOptions['auth'] = [
                 $this->auth['username'] ?? '',
                 $this->auth['password'] ?? ''
             ];
         }
 
-        if ($this->auth['method'] == 'token') {
+        if ($this->auth['method'] === 'token') {
             $t = $this->auth['tokentype'] ?? 'Bearer';
             $v = $this->auth['tokenvalue'] ?? '';
             $authOptions['headers'] = [

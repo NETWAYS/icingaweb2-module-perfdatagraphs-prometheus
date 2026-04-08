@@ -5,9 +5,9 @@ namespace Icinga\Module\Perfdatagraphsprometheus\Controllers;
 use Icinga\Module\Perfdatagraphsprometheus\Forms\PerfdataGraphsPrometheusConfigForm;
 
 use Icinga\Application\Config;
-use ipl\Html\HtmlString;
 use Icinga\Web\Widget\Tabs;
 
+use ipl\Html\HtmlString;
 use ipl\Web\Compat\CompatController;
 
 /**

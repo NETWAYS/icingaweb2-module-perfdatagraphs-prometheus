@@ -78,7 +78,7 @@ class PerfdataGraphsPrometheusConfigForm extends ConfigForm
 
         $this->addElement('checkbox', 'prometheus_api_tls_insecure', [
             'description' => t('Skip the TLS verification'),
-            'label' => 'Skip the TLS verification'
+            'label' => t('Skip the TLS verification')
         ]);
     }
 
@@ -163,12 +163,11 @@ class PerfdataGraphsPrometheusConfigForm extends ConfigForm
     {
         $baseURI = $form->getValue('prometheus_api_url', 'http://localhost:9090');
         $timeout = (int) $form->getValue('prometheus_api_timeout', 10);
-        $org = $form->getValue('prometheus_api_org', '');
         // Hint: We use a "skip TLS" logic in the UI, but Guzzle uses "verify TLS"
         $tlsVerify = !(bool) $form->getValue('prometheus_api_tls_insecure', false);
         $maxDataPoints = (int) $form->getValue('prometheus_api_max_data_points', 10000);
         // Auth values
-        $authMethod = $form->getValue('prometheus_api_auth_method', 'NONE');
+        $authMethod = $form->getValue('prometheus_api_auth_method', 'none');
         $authTokenType = $form->getValue('prometheus_api_auth_tokentype', 'Bearer');
         $authTokenValue = $form->getValue('prometheus_api_auth_tokenvalue', '');
         $authUsername = $form->getValue('prometheus_api_auth_username', '');

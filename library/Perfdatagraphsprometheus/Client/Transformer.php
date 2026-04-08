@@ -87,7 +87,7 @@ class Transformer
 
             // If the __name__ is state_check_threshold then we have 'thresholds'
             // We create a new PerfdataSeries for 'critical' and add values
-            if ($metricname == 'state_check_threshold') {
+            if ($metricname === 'state_check_threshold') {
                 $thresholdType = $result['metric']['threshold_type'] ?? '';
                 // Skip everything that is not critical/warning
                 if ($thresholdType === null || $thresholdType === '' || $thresholdType === 'min' || $thresholdType === 'max') {
