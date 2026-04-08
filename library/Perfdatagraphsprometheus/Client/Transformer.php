@@ -11,13 +11,110 @@ use Icinga\Util\Json;
 
 use GuzzleHttp\Psr7\Response;
 
-use SplFixedArray;
-
 /**
  * Transformer handles all data transformation.
  */
 class Transformer
 {
+    /**
+     * preparePerfdataResponse adds the values PerfdataSeries and timestamps
+     */
+    protected static function preparePerfdataResponse(array $results, PerfdataResponse $pfr): PerfdataResponse
+    {
+        $metricname = 'state_check_perfdata';
+
+        foreach ($results as $result) {
+            // We first check for the state_check_perfdata metric
+            // This is where we get the values and timestamps
+            if ($result['metric']['__name__'] !== $metricname) {
+                continue;
+            }
+
+            // The label (name) of the performance data series
+            $label = $result['metric']['perfdata_label'];
+
+            // Do we have a dataset already?
+            $dataset = $pfr->getDataset($label);
+            // if not we create a new one
+            if (empty($dataset)) {
+                $unit = $result['metric']['unit'] ?? '';
+                $dataset = new PerfdataSet($label, $unit);
+                $pfr->addDataset($dataset);
+            }
+
+            $values = [];
+            $timestamps = [];
+
+            foreach ($result['values'] as $point) {
+                $timestamps[] = $point[0];
+                $values[] = $point[1];
+            }
+
+            $valuesSeries = new PerfdataSeries('value', $values);
+
+            // If the series is empty we can stop here
+            if ($valuesSeries->isEmpty()) {
+                continue;
+            }
+
+            $dataset->addSeries($valuesSeries);
+            $dataset->setTimestamps($timestamps);
+        }
+
+        return $pfr;
+    }
+
+    /**
+     * preparePerfdataResponse adds the values PerfdataSeries and timestamps
+     */
+    protected static function appendThresholds(array $results, PerfdataResponse $pfr): PerfdataResponse
+    {
+        $metricname = 'state_check_threshold';
+
+        foreach ($results as $result) {
+            // If the __name__ is state_check_threshold then we have 'thresholds'
+            // We create a new PerfdataSeries for 'critical' and add values
+            if ($result['metric']['__name__'] !== $metricname) {
+                continue;
+            }
+
+            // The label (name) of the performance data series
+            $label = $result['metric']['perfdata_label'];
+            // The the of threshold (warning, critical, etc.)
+            $thresholdType = $result['metric']['threshold_type'] ?? '';
+
+            // Skip everything that is not critical/warning
+            if ($thresholdType !== 'warning' && $thresholdType !== 'critical') {
+                continue;
+            }
+
+            $dataset = $pfr->getDataset($label);
+            // Probably not gonna happen, but just in case
+            if ($dataset === null) {
+                continue;
+            }
+
+            $ts = $dataset->getTimestamps();
+            $valueMap = array_column($result['values'], 1, 0);
+            // Get the matching threshold value for the given timestamp otherwise use null
+            $thresholds = [];
+            foreach ($ts as $timestamp) {
+                $thresholds[] = $valueMap[$timestamp] ?? null;
+            }
+
+            $thresholdSeries = new PerfdataSeries($thresholdType, $thresholds);
+
+            // If the series is empty we can stop here
+            if ($thresholdSeries->isEmpty()) {
+                continue;
+            }
+
+            $dataset->addSeries($thresholdSeries);
+        }
+
+        return $pfr;
+    }
+
     /**
      * transform takes the Prometheus response and transforms it into the
      * output format we need.
@@ -41,77 +138,12 @@ class Transformer
             return $pfr;
         }
 
-        foreach ($body['data']['result'] as $result) {
-            $metriclabel = $result['metric']['perfdata_label'];
-            // Probably not gonna happen, but just in case
-            if ($metriclabel === null || $metriclabel === '') {
-                continue;
-            }
+        $results = $body['data']['result'];
 
-            // Since we query the values and thresholds in one query
-            $metricname = $result['metric']['__name__'];
-
-            // If the __name__ is state_check_perfdata then we have 'values'
-            // We create a new PerfdataSeries for 'value' and add values
-            if ($metricname === 'state_check_perfdata') {
-                // Do we have a dataset already?
-                $dataset = $pfr->getDataset($metriclabel);
-
-                // No, then create a new one
-                if (empty($dataset)) {
-                    $unit = $result['metric']['unit'] ?? '';
-                    $dataset = new PerfdataSet($metriclabel, $unit);
-                    $pfr->addDataset($dataset);
-                }
-
-                // We're using an SplFixedArray since we don't need fancy array features
-                // and want to use less memory
-                $values = new SplFixedArray(count($result['values']));
-                $timestamps = new SplFixedArray(count($result['values']));
-
-                foreach ($result['values'] as $i => $point) {
-                    $timestamps[$i] = $point[0];
-                    $values[$i] = $point[1];
-                }
-
-                $valuesSeries = new PerfdataSeries('value', $values);
-                if ($valuesSeries->isEmpty()) {
-                    continue;
-                }
-                $dataset->addSeries($valuesSeries);
-                $dataset->setTimestamps($timestamps);
-            }
-
-            // If the __name__ is state_check_threshold then we have 'thresholds'
-            // We create a new PerfdataSeries for 'critical' and add values
-            if ($metricname === 'state_check_threshold') {
-                $thresholdType = $result['metric']['threshold_type'] ?? '';
-                // Skip everything that is not critical/warning
-                if ($thresholdType === null || $thresholdType === '' || $thresholdType === 'min' || $thresholdType === 'max') {
-                    continue;
-                }
-
-                $dataset = $pfr->getDataset($metriclabel);
-
-                if (empty($dataset)) {
-                    // TODO: What now? Could the state_check_threshold is returned before the state_check_perfdata
-                    continue;
-                }
-
-                $values = new SplFixedArray(count($result['values']));
-
-                foreach ($result['values'] as $i => $point) {
-                    $values[$i] = $point[1];
-                }
-
-                $thresholdSeries = new PerfdataSeries($thresholdType, $values);
-
-                if ($thresholdSeries->isEmpty()) {
-                    continue;
-                }
-                $dataset->addSeries($thresholdSeries);
-            }
-        }
+        $pfr = self::preparePerfdataResponse($results, $pfr);
+        // Since the thresholds might be enabled/disabled we need to use the length of the values for the Series
+        // and pad missing thresholds with null. I don't like having a second loop, maybe there's a better way
+        $pfr = self::appendThresholds($results, $pfr);
 
         return $pfr;
     }
