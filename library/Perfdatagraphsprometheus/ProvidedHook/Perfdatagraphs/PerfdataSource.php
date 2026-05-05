@@ -45,7 +45,8 @@ class PerfdataSource extends PerfdataSourceHook
                 $req->getDuration(),
                 $req->isHostCheck(),
                 $req->getIncludeMetrics(),
-                $req->getExcludeMetrics()
+                $req->getExcludeMetrics(),
+                $req->getCheckInterval()
             );
         } catch (ConnectException $e) {
             $perfdataresponse->addError($e->getMessage());
