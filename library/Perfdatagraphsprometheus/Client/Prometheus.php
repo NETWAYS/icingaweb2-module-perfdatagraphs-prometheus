@@ -139,7 +139,8 @@ class Prometheus
         string $from,
         bool $isHostCheck,
         array $includeMetrics,
-        array $excludeMetrics
+        array $excludeMetrics,
+        int $checkInterval = 0
     ): Response {
         $endTime = new DateTimeImmutable();
         $startTime = $endTime->sub(new DateInterval($from));
@@ -150,7 +151,7 @@ class Prometheus
 
         $start = $startTime->getTimestamp();
         $end = $endTime->getTimestamp();
-        $step = $this->calculateSteps($start, $end, $this->maxDataPoints);
+        $step = $this->calculateSteps($start, $end, $this->maxDataPoints, $checkInterval);
 
         $query = [
             'query' => [
