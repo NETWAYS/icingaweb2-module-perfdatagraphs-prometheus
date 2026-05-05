@@ -46,8 +46,8 @@ class Transformer
             $timestamps = [];
 
             foreach ($result['values'] as $point) {
-                $timestamps[] = $point[0];
-                $values[] = $point[1];
+                $timestamps[] = (int) $point[0];
+                $values[] = is_numeric($point[1]) ? (float) $point[1] : null;
             }
 
             $valuesSeries = new PerfdataSeries('value', $values);
@@ -95,11 +95,15 @@ class Transformer
             }
 
             $ts = $dataset->getTimestamps();
-            $valueMap = array_column($result['values'], 1, 0);
-            // Get the matching threshold value for the given timestamp otherwise use null
+            // Build a map of timestamp (int) => float value for fast lookup.
+            $valueMap = [];
+            foreach ($result['values'] as $point) {
+                $valueMap[(int) $point[0]] = is_numeric($point[1]) ? (float) $point[1] : null;
+            }
+            // Align threshold values to the stored timestamps; use null for gaps.
             $thresholds = [];
             foreach ($ts as $timestamp) {
-                $thresholds[] = $valueMap[$timestamp] ?? null;
+                $thresholds[] = $valueMap[(int) $timestamp] ?? null;
             }
 
             $thresholdSeries = new PerfdataSeries($thresholdType, $thresholds);
