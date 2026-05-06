@@ -115,14 +115,19 @@ class Prometheus
     }
 
     /**
-     * calculateSteps uses the start and end timestamps to calculate the step parameter
+     * calculateSteps uses the start and end timestamps to calculate the step parameter.
+     *
+     * The step is never smaller than $checkInterval to avoid repeated identical
+     * values caused by Prometheus gap-filling within the lookback window.
      */
-    protected function calculateSteps(int $start, int $end, int $maxDataPoints): string
+    protected function calculateSteps(int $start, int $end, int $maxDataPoints, int $checkInterval = 0): string
     {
         $totalSeconds = $end - $start;
         $stepSeconds = $totalSeconds / $maxDataPoints;
-        // NOTE: This means we can never get a resolution below 60s, even if Icinga2 would send data every 15s
-        $stepSeconds = max($stepSeconds, 60);
+        // Use the check interval as the minimum step so we don't over-sample.
+        // Fall back to 1s when no check interval is available.
+        $minStep = $checkInterval > 0 ? $checkInterval : 1;
+        $stepSeconds = max($stepSeconds, $minStep);
 
         return (int)round($stepSeconds) . 's';
     }
@@ -134,7 +139,8 @@ class Prometheus
         string $from,
         bool $isHostCheck,
         array $includeMetrics,
-        array $excludeMetrics
+        array $excludeMetrics,
+        int $checkInterval = 0
     ): Response {
         $endTime = new DateTimeImmutable();
         $startTime = $endTime->sub(new DateInterval($from));
@@ -145,7 +151,7 @@ class Prometheus
 
         $start = $startTime->getTimestamp();
         $end = $endTime->getTimestamp();
-        $step = $this->calculateSteps($start, $end, $this->maxDataPoints);
+        $step = $this->calculateSteps($start, $end, $this->maxDataPoints, $checkInterval);
 
         $query = [
             'query' => [
