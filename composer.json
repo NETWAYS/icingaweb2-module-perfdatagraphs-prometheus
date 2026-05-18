@@ -1,0 +1,17 @@
+{
+    "name": "perfdatagraphs/prometheus",
+    "description": "A Prometheus backend for the Icinga Web Performance Data Graphs Module.",
+    "license": "GPL-2.0-only",
+    "require-dev": {
+        "phpbench/phpbench": "^1.7"
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "GuzzleHttp\\Psr7\\": "_libraries/vendor/vendor/guzzlehttp/psr7/src/",
+            "Icinga\\": "_icingaweb2/library/Icinga/",
+            "Icinga\\Module\\Perfdatagraphs\\": "_libraries/perfdatagraphs/library/Perfdatagraphs",
+            "Icinga\\Module\\Perfdatagraphsprometheus\\": "library/Perfdatagraphsprometheus/",
+            "Psr\\Http\\Message\\": "_libraries/vendor/vendor/psr/http-message/src/"
+        }
+    }
+}
