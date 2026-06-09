@@ -3,7 +3,8 @@
     "description": "A Prometheus backend for the Icinga Web Performance Data Graphs Module.",
     "license": "GPL-2.0-only",
     "require-dev": {
-        "phpbench/phpbench": "^1.7"
+        "phpbench/phpbench": "^1.7",
+        "overtrue/phplint": "^9.7"
     },
     "autoload-dev": {
         "psr-4": {
