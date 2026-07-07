@@ -153,6 +153,9 @@ class Prometheus
         $end = $endTime->getTimestamp();
         $step = $this->calculateSteps($start, $end, $this->maxDataPoints, $checkInterval);
 
+        // To avoid issues when a check interval is higher than Prometheus lookback-delta
+        $q = sprintf('last_over_time(%s[%s])', $q, $step);
+
         $query = [
             'query' => [
                 'query' => $q,
