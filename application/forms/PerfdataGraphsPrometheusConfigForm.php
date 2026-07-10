@@ -6,6 +6,8 @@ use Icinga\Module\Perfdatagraphsprometheus\Client\Prometheus;
 
 use Icinga\Forms\ConfigForm;
 
+use Zend_Validate_Callback;
+
 /**
  * PerfdataGraphsPrometheusConfigForm represents the configuration form for the PerfdataGraphs Prometheus Module.
  */
@@ -81,6 +83,19 @@ class PerfdataGraphsPrometheusConfigForm extends ConfigForm
             'label' => t('Skip the TLS verification')
         ]);
 
+        // TODO: We should switch to ipl\Validator\GreaterThanValidator;
+        $greaterThanValidator = new Zend_Validate_Callback(function ($value) {
+            if ($value <= 0) {
+                return false;
+            }
+            return true;
+        });
+
+        $greaterThanValidator->setMessage(
+            $this->translate('The cannot be smaller than 1'),
+            Zend_Validate_Callback::INVALID_VALUE
+        );
+
         $this->addElement('number', 'prometheus_api_max_data_points', [
             'label' => t('The maximum numbers of datapoints each series returns'),
             'description' => t(' '),
@@ -90,6 +105,7 @@ class PerfdataGraphsPrometheusConfigForm extends ConfigForm
             ),
             'required' => false,
             'placeholder' => 10000,
+            'validators' => [$greaterThanValidator],
         ]);
     }
 

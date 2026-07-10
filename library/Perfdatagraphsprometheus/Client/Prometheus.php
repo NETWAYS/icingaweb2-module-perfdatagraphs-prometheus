@@ -123,6 +123,13 @@ class Prometheus
     protected function calculateSteps(int $start, int $end, int $maxDataPoints, int $checkInterval = 0): string
     {
         $totalSeconds = $end - $start;
+
+        // Ensure we don't divide by zero
+        if ($maxDataPoints < 1) {
+            Logger::warning('Perfdatagraphs Prometheus maxDataPoints is too small. Review the module configuration');
+            $maxDataPoints = 1;
+        }
+
         $stepSeconds = $totalSeconds / $maxDataPoints;
         // Use the check interval as the minimum step so we don't over-sample.
         // Fall back to 1s when no check interval is available.
