@@ -90,25 +90,37 @@ class Prometheus
 
     protected function getAuth(): array
     {
+        $method = $this->auth['method'] ?? 'none';
+
         $authOptions = [];
 
-        if ($this->auth['method'] === 'none') {
-            return $authOptions;
-        }
-
-        if ($this->auth['method'] === 'basic') {
+        if ($method === 'basic') {
             $authOptions['auth'] = [
                 $this->auth['username'] ?? '',
                 $this->auth['password'] ?? ''
             ];
         }
 
-        if ($this->auth['method'] === 'token') {
+        if ($method === 'token') {
             $t = $this->auth['tokentype'] ?? 'Bearer';
             $v = $this->auth['tokenvalue'] ?? '';
             $authOptions['headers'] = [
                     'Authorization' =>  $t .' '. $v,
             ];
+        }
+
+        $mtls = $this->auth['mtls'] ?? false;
+
+        if ($mtls === false) {
+            return $authOptions;
+        }
+
+        if ($mtls) {
+            $authOptions['cert'] = $this->auth['mtls_cert'] ?? '';
+            $authOptions['ssl_key'] = $this->auth['mtls_key'] ?? '';
+            if (($this->auth['mtls_ca'] ?? '') !== '') {
+                $authOptions['verify'] = $this->auth['mtls_ca'] ?? '';
+            }
         }
 
         return $authOptions;
@@ -239,6 +251,10 @@ class Prometheus
             'api_auth_tokenvalue' => '',
             'api_auth_username' => '',
             'api_auth_password' => '',
+            'api_auth_mtls' => false,
+            'api_auth_mtls_cert' => '',
+            'api_auth_mtls_key' => '',
+            'api_auth_mtls_ca' => '',
         ];
 
         // Try to load the configuration
@@ -248,7 +264,13 @@ class Prometheus
                 $moduleConfig = Config::module('perfdatagraphsprometheus');
             } catch (Exception $e) {
                 Logger::error('Failed to load Perfdata Graphs Prometheus module configuration: %s', $e);
-                return $default;
+                return new static(
+                    baseURI: $default['api_url'],
+                    timeout: $default['api_timeout'],
+                    tlsVerify: true,
+                    maxDataPoints: $default['max_data_points'],
+                    auth: [],
+                );
             }
         }
 
@@ -261,7 +283,11 @@ class Prometheus
         $authTokenValue = $moduleConfig->get('prometheus', 'api_auth_tokenvalue', $default['api_auth_tokenvalue']);
         $authUsername = $moduleConfig->get('prometheus', 'api_auth_username', $default['api_auth_username']);
         $authPassword = $moduleConfig->get('prometheus', 'api_auth_password', $default['api_auth_password']);
-
+        // mTLS values
+        $authMTLS = $moduleConfig->get('prometheus', 'api_auth_mtls', $default['api_auth_mtls']);
+        $authMTLSCert = $moduleConfig->get('prometheus', 'api_auth_mtls_cert', $default['api_auth_mtls_cert']);
+        $authMTLSKey = $moduleConfig->get('prometheus', 'api_auth_mtls_key', $default['api_auth_mtls_key']);
+        $authMTLSCA = $moduleConfig->get('prometheus', 'api_auth_mtls_ca', $default['api_auth_mtls_ca']);
         // Hint: We use a "skip TLS" logic in the UI, but Guzzle uses "verify TLS"
         $tlsVerify = !(bool) $moduleConfig->get('prometheus', 'api_tls_insecure', $default['api_tls_insecure']);
         // Bit hacky, but fine for now
@@ -271,6 +297,10 @@ class Prometheus
             'tokenvalue' => $authTokenValue,
             'username' => $authUsername,
             'password' => $authPassword,
+            'mtls' => $authMTLS,
+            'mtls_cert' => $authMTLSCert,
+            'mtls_key' => $authMTLSKey,
+            'mtls_ca' => $authMTLSCA,
         ];
 
         return new static(

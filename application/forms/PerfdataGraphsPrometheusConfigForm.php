@@ -10,6 +10,8 @@ use Zend_Validate_Callback;
 
 /**
  * PerfdataGraphsPrometheusConfigForm represents the configuration form for the PerfdataGraphs Prometheus Module.
+ * TODO: Icinga Web 2.14 introduced a new Web\Form\ConfigForm, we can migrate when 2.14 is more prevalent
+ * Then we can also use ipl Validators.
  */
 class PerfdataGraphsPrometheusConfigForm extends ConfigForm
 {
@@ -71,6 +73,30 @@ class PerfdataGraphsPrometheusConfigForm extends ConfigForm
             ]);
         }
 
+        $this->addElement('checkbox', 'prometheus_api_auth_mtls', [
+            'label' => t('Use client certificate (mTLS)'),
+            'description' => t('Use client certificate (mTLS) for the connection'),
+            'class' => 'autosubmit',
+        ]);
+
+        if (isset($formData['prometheus_api_auth_mtls']) && $formData['prometheus_api_auth_mtls'] === '1') {
+            $this->addElement('text', 'prometheus_api_auth_mtls_cert', [
+                'label' => t('mTLS client certificate path'),
+                'description' => t('Path to the client certificate'),
+                'required' => true,
+            ]);
+            $this->addElement('text', 'prometheus_api_auth_mtls_key', [
+                'label' => t('mTLS client key path'),
+                'description' => t('Path to the client key'),
+                'required' => true,
+            ]);
+            $this->addElement('text', 'prometheus_api_auth_mtls_ca', [
+                'label' => t('mTLS client CA path'),
+                'description' => t('Path to the CA. Defaults to system CA'),
+                'required' => false,
+            ]);
+        }
+
         $this->addElement('number', 'prometheus_api_timeout', [
             'label' => t('HTTP timeout in seconds'),
             'description' => t('HTTP timeout for the API in seconds. Should be higher than 0'),
@@ -83,7 +109,6 @@ class PerfdataGraphsPrometheusConfigForm extends ConfigForm
             'label' => t('Skip the TLS verification')
         ]);
 
-        // TODO: We should switch to ipl\Validator\GreaterThanValidator;
         $greaterThanValidator = new Zend_Validate_Callback(function ($value) {
             if ($value <= 0) {
                 return false;
@@ -199,13 +224,22 @@ class PerfdataGraphsPrometheusConfigForm extends ConfigForm
         $authTokenValue = $form->getValue('prometheus_api_auth_tokenvalue', '');
         $authUsername = $form->getValue('prometheus_api_auth_username', '');
         $authPassword = $form->getValue('prometheus_api_auth_password', '');
-        // Bit hacky, but fine for now
+        // mTLS values
+        $authMTLS = $form->getValue('prometheus_api_auth_mtls', false);
+        $authMTLSCert = $form->getValue('prometheus_api_auth_mtls_cert', '');
+        $authMTLSKey = $form->getValue('prometheus_api_auth_mtls_key', '');
+        $authMTLSCA = $form->getValue('prometheus_api_auth_mtls_ca', '');
+
         $auth = [
             'method' => mb_strtolower($authMethod),
             'tokentype' => $authTokenType,
             'tokenvalue' => $authTokenValue,
             'username' => $authUsername,
             'password' => $authPassword,
+            'mtls' => $authMTLS,
+            'mtls_cert' => $authMTLSCert,
+            'mtls_key' => $authMTLSKey,
+            'mtls_ca' => $authMTLSCA,
         ];
 
         try {
