@@ -22,9 +22,7 @@ class Prometheus
     protected const QUERY_ENDPOINT = '/api/v1/query';
     protected const QUERYRANGE_ENDPOINT = '/api/v1/query_range';
 
-    /** @var $this \Icinga\Application\Modules\Module */
-    protected Client $client;
-
+    protected \GuzzleHttp\Client $client;
     protected string $URL;
     protected int $maxDataPoints;
     protected array $auth;
