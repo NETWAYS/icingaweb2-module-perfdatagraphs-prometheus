@@ -130,12 +130,12 @@ class Transformer
     {
         $pfr = new PerfdataResponse();
 
-        if (empty($response)) {
-            Logger::warning('Did not receive data in response');
+        $body = Json::decode($response->getBody()->getContents(), true);
+
+        if ($body === null) {
+            Logger::warning('Did not receive valid JSON data in response');
             return $pfr;
         }
-
-        $body = Json::decode($response->getBody()->getContents(), true);
 
         if ($body['status'] !== 'success') {
             $pfr->addError($body['error'] ?? 'unknown error');
