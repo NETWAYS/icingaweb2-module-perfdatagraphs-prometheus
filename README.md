@@ -15,6 +15,6 @@ Other Icinga and Prometheus integrations we provide:
 
 ## Installation Requirements
 
-* PHP version ≥ 8.0
+* PHP version ≥ 8.2
 * Icinga2 OTLPMetricsWriter
 * A Prometheus compatible API to fetch the data from (Prometheus, Mimir, VictoriaMetrics, etc.)
