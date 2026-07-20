@@ -32,6 +32,7 @@ To install this module, follow the setup instructions for the **extras** reposit
 | api_timeout          | HTTP timeout for the API in seconds. Should be higher than 0                                             | `10` (seconds)           |
 | api_max_data_points  | The maximum numbers of datapoints each series returns. Aggregation can be disabled by setting this to 0. | `10000`                  |
 | api_tls_insecure     | Skip the TLS verification                                                                                | `false` (unchecked)      |
+| api_use_otel_names     | Use dot-separated names for metrics and label queries. E.g. state_check.perfdata instead of state_check_perfdata | `false` (unchecked)      |
 | api_auth_method     | Authentication method to use for the API                                                                  | none (none,basic,token) |
 | api_auth_username    | HTTP basic auth username                                                                                 |   |
 | api_auth_password    | HTTP basic auth password                                                                                 |   |

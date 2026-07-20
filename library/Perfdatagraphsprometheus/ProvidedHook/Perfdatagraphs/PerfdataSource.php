@@ -65,7 +65,7 @@ class PerfdataSource extends PerfdataSourceHook
 
         try {
             // Transform into the PerfdataSourceHook format
-            $perfdataresponse = Transformer::transform($response);
+            $perfdataresponse = Transformer::transform($response, $client->useOtelNames);
         } catch (Exception $e) {
             $perfdataresponse->addError($e->getMessage());
         }

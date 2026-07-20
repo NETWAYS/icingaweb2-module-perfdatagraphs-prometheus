@@ -11,6 +11,8 @@ use Icinga\Util\Json;
 
 use GuzzleHttp\Psr7\Response;
 
+use SplFixedArray;
+
 /**
  * Transformer handles all data transformation.
  */
@@ -19,9 +21,10 @@ class Transformer
     /**
      * preparePerfdataResponse adds the values PerfdataSeries and timestamps
      */
-    protected static function preparePerfdataResponse(array $results, PerfdataResponse $pfr): PerfdataResponse
+    protected static function preparePerfdataResponse(array $results, PerfdataResponse $pfr, bool $useOtel): PerfdataResponse
     {
-        $metricname = 'state_check_perfdata';
+        $metricname = $useOtel ? Icinga2Fields::METRIC_CHECK_DOT : Icinga2Fields::METRIC_CHECK;
+        $labelname = $useOtel ? Icinga2Fields::LABEL_NAME_DOT : Icinga2Fields::LABEL_NAME;
 
         foreach ($results as $result) {
             // We first check for the state_check_perfdata metric
@@ -31,7 +34,7 @@ class Transformer
             }
 
             // The label (name) of the performance data series
-            $label = $result['metric']['perfdata_label'];
+            $label = $result['metric'][$labelname];
 
             // Do we have a dataset already?
             $dataset = $pfr->getDataset($label);
@@ -42,12 +45,13 @@ class Transformer
                 $pfr->addDataset($dataset);
             }
 
-            $values = [];
-            $timestamps = [];
+            $valuesCount = count($result['values']);
+            $values = new SplFixedArray($valuesCount);
+            $timestamps = new SplFixedArray($valuesCount);
 
-            foreach ($result['values'] as $point) {
-                $timestamps[] = (int) $point[0];
-                $values[] = is_numeric($point[1]) ? (float) $point[1] : null;
+            foreach ($result['values'] as $i => $point) {
+                $timestamps[$i] = (int) $point[0];
+                $values[$i] = is_numeric($point[1]) ? (float) $point[1] : null;
             }
 
             $valuesSeries = new PerfdataSeries('value', $values);
@@ -67,9 +71,10 @@ class Transformer
     /**
      * preparePerfdataResponse adds the values PerfdataSeries and timestamps
      */
-    protected static function appendThresholds(array $results, PerfdataResponse $pfr): PerfdataResponse
+    protected static function appendThresholds(array $results, PerfdataResponse $pfr, bool $useOtel): PerfdataResponse
     {
-        $metricname = 'state_check_threshold';
+        $metricname = $useOtel ? Icinga2Fields::METRIC_THRESHOLD_DOT : Icinga2Fields::METRIC_THRESHOLD;
+        $labelname = $useOtel ? Icinga2Fields::LABEL_NAME_DOT : Icinga2Fields::LABEL_NAME;
 
         foreach ($results as $result) {
             // If the __name__ is state_check_threshold then we have 'thresholds'
@@ -79,7 +84,7 @@ class Transformer
             }
 
             // The label (name) of the performance data series
-            $label = $result['metric']['perfdata_label'];
+            $label = $result['metric'][$labelname];
             // The the of threshold (warning, critical, etc.)
             $thresholdType = $result['metric']['threshold_type'] ?? '';
 
@@ -100,10 +105,11 @@ class Transformer
             foreach ($result['values'] as $point) {
                 $valueMap[(int) $point[0]] = is_numeric($point[1]) ? (float) $point[1] : null;
             }
+
             // Align threshold values to the stored timestamps; use null for gaps.
-            $thresholds = [];
-            foreach ($ts as $timestamp) {
-                $thresholds[] = $valueMap[(int) $timestamp] ?? null;
+            $thresholds = new SplFixedArray(count($ts));
+            foreach ($ts as $i => $timestamp) {
+                $thresholds[$i] = $valueMap[(int) $timestamp] ?? null;
             }
 
             $thresholdSeries = new PerfdataSeries($thresholdType, $thresholds);
@@ -126,7 +132,7 @@ class Transformer
      * @param GuzzleHttp\Psr7\Response $response the data to transform
      * @return PerfdataResponse
      */
-    public static function transform(Response $response): PerfdataResponse
+    public static function transform(Response $response, bool $useOtel): PerfdataResponse
     {
         $pfr = new PerfdataResponse();
 
@@ -144,10 +150,10 @@ class Transformer
 
         $results = $body['data']['result'];
 
-        $pfr = self::preparePerfdataResponse($results, $pfr);
+        $pfr = self::preparePerfdataResponse($results, $pfr, $useOtel);
         // Since the thresholds might be enabled/disabled we need to use the length of the values for the Series
         // and pad missing thresholds with null. I don't like having a second loop, maybe there's a better way
-        $pfr = self::appendThresholds($results, $pfr);
+        $pfr = self::appendThresholds($results, $pfr, $useOtel);
 
         return $pfr;
     }

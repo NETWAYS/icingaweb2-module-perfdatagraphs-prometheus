@@ -32,6 +32,6 @@ class TransfomerBench
     public function benchTransform()
     {
         $input = $this->loadTestdata(__DIR__ .'/testdata/load.json');
-        $actual = Transformer::transform($input);
+        $actual = Transformer::transform($input, false);
     }
 }
