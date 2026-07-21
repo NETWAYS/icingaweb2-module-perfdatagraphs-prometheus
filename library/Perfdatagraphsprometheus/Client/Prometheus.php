@@ -152,6 +152,8 @@ class Prometheus
             ],
         ];
 
+        // Note, make sure this won't override entries in the $query
+        // use array_merge_recursive if the need arises
         $query = array_merge($query, $this->getAuth());
 
         Logger::debug('Calling query API at %s with query: %s', $url, $query);
@@ -238,7 +240,7 @@ class Prometheus
                     baseURI: $default['api_url'],
                     timeout: $default['api_timeout'],
                     tlsVerify: true,
-                    maxDataPoints: $default['max_data_points'],
+                    maxDataPoints: $default['api_max_data_points'],
                     auth: [],
                 );
             }
