@@ -18,6 +18,11 @@ use SplFixedArray;
  */
 class Transformer
 {
+    protected static function toFloat(mixed $f): ?float
+    {
+        return is_numeric($f) ? (float) $f : null;
+    }
+
     /**
      * preparePerfdataResponse adds the values PerfdataSeries and timestamps
      */
@@ -51,7 +56,7 @@ class Transformer
 
             foreach ($result['values'] as $i => $point) {
                 $timestamps[$i] = (int) $point[0];
-                $values[$i] = is_numeric($point[1]) ? (float) $point[1] : null;
+                $values[$i] = self::toFloat($point[1]);
             }
 
             $valuesSeries = new PerfdataSeries('value', $values);
@@ -103,7 +108,7 @@ class Transformer
             // Build a map of timestamp (int) => float value for fast lookup.
             $valueMap = [];
             foreach ($result['values'] as $point) {
-                $valueMap[(int) $point[0]] = is_numeric($point[1]) ? (float) $point[1] : null;
+                $valueMap[(int) $point[0]] = self::toFloat($point[1]);
             }
 
             // Align threshold values to the stored timestamps; use null for gaps.
@@ -148,7 +153,7 @@ class Transformer
             return $pfr;
         }
 
-        $results = $body['data']['result'];
+        $results = $body['data']['result'] ?? [];
 
         $pfr = self::preparePerfdataResponse($results, $pfr, $useOtel);
         // Since the thresholds might be enabled/disabled we need to use the length of the values for the Series
