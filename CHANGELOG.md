@@ -4,6 +4,8 @@
 
 - Raise minimum requirements to PHP 8.2
 - Add mTLS authentication option
+- Add option to use OTel style queries
+- Switch to SplFixedArray and improved error handling
 
 ## v0.1.2
 
