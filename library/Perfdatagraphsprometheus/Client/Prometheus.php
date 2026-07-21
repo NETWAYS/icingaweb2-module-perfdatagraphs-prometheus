@@ -27,11 +27,14 @@ class Prometheus
     protected int $maxDataPoints;
     protected array $auth;
 
+    public readonly bool $useOtelNames;
+
     public function __construct(
         string $baseURI,
         int $timeout = 10,
         int $maxDataPoints = 10000,
         bool $tlsVerify = true,
+        bool $useOtelNames = false,
         array $auth = [],
     ) {
         $this->client = new Client([
@@ -40,50 +43,9 @@ class Prometheus
         ]);
 
         $this->URL = rtrim($baseURI, '/');
-
+        $this->useOtelNames = $useOtelNames;
         $this->maxDataPoints = $maxDataPoints;
         $this->auth = $auth;
-    }
-
-    protected function generateBaseQuery(
-        string $hostName,
-        string $serviceName,
-        string $checkCommand,
-        bool $isHostCheck,
-        array $includeMetrics,
-        array $excludeMetrics
-    ): string {
-        $q = '{';
-        // TODO: Should we support OTel style names for metrics and labels?
-        // e.g. state_check.perfdata and icinga2.host.name
-        // Would require a config option to toggle.
-        $q .= '__name__=~"state_check_perfdata|state_check_threshold"';
-        $q .= ', icinga2_command_name="' . $checkCommand . '"';
-        $q .= ', icinga2_host_name="' . $hostName . '"';
-
-        if (count($includeMetrics) > 0) {
-            $includes = array_map(function ($label) {
-                return str_replace('*', '.*', $label);
-            }, $includeMetrics);
-
-            $q .= ', perfdata_label=~"' . implode('|', $includes) . '"';
-        }
-
-        if (count($excludeMetrics) > 0) {
-            $excludes = array_map(function ($label) {
-                return str_replace('*', '.*', $label);
-            }, $excludeMetrics);
-
-            $q .= ', perfdata_label!~"' . implode('|', $excludes) . '"';
-        }
-
-        if (!$isHostCheck) {
-            $q .= ', icinga2_service_name="' . $serviceName . '"';
-        }
-
-        $q .= '}';
-
-        return $q;
     }
 
     protected function getAuth(): array
@@ -164,7 +126,15 @@ class Prometheus
 
         $url = $this->URL . $this::QUERYRANGE_ENDPOINT;
 
-        $q = $this->generateBaseQuery($hostName, $serviceName, $checkCommand, $isHostCheck, $includeMetrics, $excludeMetrics);
+        if ($this->useOtelNames) {
+            // {__name__=~"state.check.perfdata|state.check.threshold",
+            // "icinga2.command.name"="procs", "icinga2.host.name"="example", "icinga2.service.name"="procs"}
+            $q = Icinga2Fields::baseQueryWithDots($hostName, $serviceName, $checkCommand, $isHostCheck, $includeMetrics, $excludeMetrics);
+        } else {
+            // {__name__=~"state_check_perfdata|state_check_threshold",
+            // icinga2_command_name="procs", icinga2_host_name="example", icinga2_service_name="procs"}
+            $q = Icinga2Fields::baseQueryWithUnderscore($hostName, $serviceName, $checkCommand, $isHostCheck, $includeMetrics, $excludeMetrics);
+        }
 
         $start = $startTime->getTimestamp();
         $end = $endTime->getTimestamp();
@@ -199,9 +169,10 @@ class Prometheus
      */
     public function status(): array
     {
+        $l = $this->useOtelNames ? Icinga2Fields::METRIC_CHECK_DOT : Icinga2Fields::METRIC_CHECK;
         $query = [
             'query' => [
-                'query' => 'count({__name__="state_check_perfdata"})',
+                'query' => 'count({__name__="'. $l .'"})',
             ]
         ];
 
@@ -244,6 +215,7 @@ class Prometheus
             'api_timeout' => 10,
             'api_max_data_points' => 10000,
             'api_tls_insecure' => false,
+            'api_use_otel_names' => false,
             'api_auth_method' => 'none',
             'api_auth_tokentype' => 'Bearer',
             'api_auth_tokenvalue' => '',
@@ -275,6 +247,7 @@ class Prometheus
         $baseURI = rtrim($moduleConfig->get('prometheus', 'api_url', $default['api_url']), '/');
         $timeout = (int) $moduleConfig->get('prometheus', 'api_timeout', $default['api_timeout']);
         $maxDataPoints = (int) $moduleConfig->get('prometheus', 'api_max_data_points', $default['api_max_data_points']);
+        $useOtelNames = (bool) $moduleConfig->get('prometheus', 'api_use_otel_names', $default['api_use_otel_names']);
         // Auth values
         $authMethod = $moduleConfig->get('prometheus', 'api_auth_method', $default['api_auth_method']);
         $authTokenType = $moduleConfig->get('prometheus', 'api_auth_tokentype', $default['api_auth_tokentype']);
@@ -290,7 +263,7 @@ class Prometheus
         $tlsVerify = !(bool) $moduleConfig->get('prometheus', 'api_tls_insecure', $default['api_tls_insecure']);
         // Bit hacky, but fine for now
         $auth = [
-            'method' => mb_strtolower($authMethod),
+            'method' => strtolower($authMethod),
             'tokentype' => $authTokenType,
             'tokenvalue' => $authTokenValue,
             'username' => $authUsername,
@@ -306,6 +279,7 @@ class Prometheus
             timeout: $timeout,
             maxDataPoints: $maxDataPoints,
             tlsVerify: $tlsVerify,
+            useOtelNames: $useOtelNames,
             auth: $auth,
         );
     }

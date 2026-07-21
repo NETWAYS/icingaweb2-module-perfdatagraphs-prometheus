@@ -18,3 +18,5 @@ Other Icinga and Prometheus integrations we provide:
 * PHP version ≥ 8.2
 * Icinga2 OTLPMetricsWriter
 * A Prometheus compatible API to fetch the data from (Prometheus, Mimir, VictoriaMetrics, etc.)
+
+The module supports both `metrics.with.dots` nad `metrics_with_slashes`.

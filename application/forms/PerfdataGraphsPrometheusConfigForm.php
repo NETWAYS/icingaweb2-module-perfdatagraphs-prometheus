@@ -123,14 +123,19 @@ class PerfdataGraphsPrometheusConfigForm extends ConfigForm
 
         $this->addElement('number', 'prometheus_api_max_data_points', [
             'label' => t('The maximum numbers of datapoints each series returns'),
-            'description' => t(' '),
-            'description'   => t(
+            'description' => t(
                 'The maximum numbers of datapoints each series returns.'
                     . ' The module will use the step parameter to downsample to this number.'
             ),
             'required' => false,
             'placeholder' => 10000,
             'validators' => [$greaterThanValidator],
+        ]);
+
+        $this->addElement('checkbox', 'prometheus_api_use_otel_names', [
+            'label' => t('Use dot-separated names for metrics and label queries'),
+            'description' => t('When this is active queries will use dot-separated names metrics and label queries.'
+                               . ' E.g. state_check.perfdata instead of state_check_perfdata')
         ]);
     }
 
@@ -217,6 +222,7 @@ class PerfdataGraphsPrometheusConfigForm extends ConfigForm
         $timeout = (int) $form->getValue('prometheus_api_timeout', 10);
         // Hint: We use a "skip TLS" logic in the UI, but Guzzle uses "verify TLS"
         $tlsVerify = !(bool) $form->getValue('prometheus_api_tls_insecure', false);
+        $useOtelNames = (bool) $form->getValue('prometheus_api_use_otel_names', false);
         $maxDataPoints = (int) $form->getValue('prometheus_api_max_data_points', 10000);
         // Auth values
         $authMethod = $form->getValue('prometheus_api_auth_method', 'none');
@@ -231,7 +237,7 @@ class PerfdataGraphsPrometheusConfigForm extends ConfigForm
         $authMTLSCA = $form->getValue('prometheus_api_auth_mtls_ca', '');
 
         $auth = [
-            'method' => mb_strtolower($authMethod),
+            'method' => strtolower($authMethod),
             'tokentype' => $authTokenType,
             'tokenvalue' => $authTokenValue,
             'username' => $authUsername,
@@ -248,6 +254,7 @@ class PerfdataGraphsPrometheusConfigForm extends ConfigForm
                 timeout: $timeout,
                 maxDataPoints: $maxDataPoints,
                 tlsVerify: $tlsVerify,
+                useOtelNames: $useOtelNames,
                 auth: $auth,
             );
         } catch (Exception $e) {
