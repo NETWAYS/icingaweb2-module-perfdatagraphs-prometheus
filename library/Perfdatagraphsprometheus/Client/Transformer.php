@@ -29,7 +29,6 @@ class Transformer
     protected static function preparePerfdataResponse(array $results, PerfdataResponse $pfr, bool $useOtel): PerfdataResponse
     {
         $metricname = $useOtel ? Icinga2Fields::METRIC_CHECK_DOT : Icinga2Fields::METRIC_CHECK;
-        $labelname = $useOtel ? Icinga2Fields::LABEL_NAME_DOT : Icinga2Fields::LABEL_NAME;
 
         foreach ($results as $result) {
             // We first check for the state_check_perfdata metric
@@ -39,7 +38,7 @@ class Transformer
             }
 
             // The label (name) of the performance data series
-            $label = $result['metric'][$labelname];
+            $label = $result['metric'][Icinga2Fields::LABEL_NAME];
 
             // Do we have a dataset already?
             $dataset = $pfr->getDataset($label);
@@ -79,7 +78,6 @@ class Transformer
     protected static function appendThresholds(array $results, PerfdataResponse $pfr, bool $useOtel): PerfdataResponse
     {
         $metricname = $useOtel ? Icinga2Fields::METRIC_THRESHOLD_DOT : Icinga2Fields::METRIC_THRESHOLD;
-        $labelname = $useOtel ? Icinga2Fields::LABEL_NAME_DOT : Icinga2Fields::LABEL_NAME;
 
         foreach ($results as $result) {
             // If the __name__ is state_check_threshold then we have 'thresholds'
@@ -89,7 +87,7 @@ class Transformer
             }
 
             // The label (name) of the performance data series
-            $label = $result['metric'][$labelname];
+            $label = $result['metric'][Icinga2Fields::LABEL_NAME];
             // The the of threshold (warning, critical, etc.)
             $thresholdType = $result['metric']['threshold_type'] ?? '';
 

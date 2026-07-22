@@ -145,7 +145,7 @@ class Prometheus
         // different labels, such as "service.version" after an Icinga 2 upgrade.
         $q = sprintf(
             'avg by (__name__, %s, unit, threshold_type) (last_over_time(%s[%s]))',
-            $this->useOtelNames ? Icinga2Fields::LABEL_NAME_DOT : Icinga2Fields::LABEL_NAME,
+            Icinga2Fields::LABEL_NAME,
             $q,
             $step
         );
