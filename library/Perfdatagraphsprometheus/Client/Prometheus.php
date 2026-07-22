@@ -48,6 +48,9 @@ class Prometheus
         $this->auth = $auth;
     }
 
+    /**
+     * getAuth returns the auth options to be used in the Guzzle request
+     */
     protected function getAuth(): array
     {
         $method = $this->auth['method'] ?? 'none';
@@ -111,6 +114,9 @@ class Prometheus
         return (int)round($stepSeconds) . 's';
     }
 
+    /**
+     * getMetrics sends the PromQL query to the configured endpoint.
+     */
     public function getMetrics(
         string $hostName,
         string $serviceName,
@@ -127,13 +133,9 @@ class Prometheus
         $url = $this->URL . $this::QUERYRANGE_ENDPOINT;
 
         if ($this->useOtelNames) {
-            // {__name__=~"state.check.perfdata|state.check.threshold",
-            // "icinga2.command.name"="procs", "icinga2.host.name"="example", "icinga2.service.name"="procs"}
             $q = Icinga2Fields::baseQueryWithDots($hostName, $serviceName, $checkCommand, $isHostCheck, $includeMetrics, $excludeMetrics);
         } else {
-            // {__name__=~"state_check_perfdata|state_check_threshold",
-            // icinga2_command_name="procs", icinga2_host_name="example", icinga2_service_name="procs"}
-            $q = Icinga2Fields::baseQueryWithUnderscore($hostName, $serviceName, $checkCommand, $isHostCheck, $includeMetrics, $excludeMetrics);
+            $q = Icinga2Fields::baseQueryWithUnderscores($hostName, $serviceName, $checkCommand, $isHostCheck, $includeMetrics, $excludeMetrics);
         }
 
         $start = $startTime->getTimestamp();

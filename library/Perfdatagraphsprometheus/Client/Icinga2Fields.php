@@ -2,6 +2,9 @@
 
 namespace Icinga\Module\Perfdatagraphsprometheus\Client;
 
+/**
+ * Icinga2Fields holds information for the PromQL queries
+ */
 final class Icinga2Fields
 {
     public const LABEL_NAME = 'perfdata_label';
@@ -23,7 +26,14 @@ final class Icinga2Fields
     {
     }
 
-    public static function baseQueryWithUnderscore(
+    /**
+     * baseQueryWithUnderscores generates a query with the Prometheus style underscores
+     * in the names.
+     *
+     * {__name__=~"state_check_perfdata|state_check_threshold",
+     * icinga2_command_name="procs", icinga2_host_name="example", icinga2_service_name="procs"}
+     */
+    public static function baseQueryWithUnderscores(
         string $hostName,
         string $serviceName,
         string $checkCommand,
@@ -55,6 +65,13 @@ final class Icinga2Fields
         return $q;
     }
 
+    /**
+     * baseQueryWithDots generates a query with the OTel style dots
+     * in the names.
+     *
+     * {__name__=~"state.check.perfdata|state.check.threshold",
+     * "icinga2.command.name"="procs", "icinga2.host.name"="example", "icinga2.service.name"="procs"}
+     */
     public static function baseQueryWithDots(
         string $hostName,
         string $serviceName,
