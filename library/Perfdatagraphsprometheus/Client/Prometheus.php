@@ -32,7 +32,7 @@ class Prometheus
     public function __construct(
         string $baseURI,
         int $timeout = 10,
-        int $maxDataPoints = 10000,
+        int $maxDataPoints = 5500,
         bool $tlsVerify = true,
         bool $useOtelNames = false,
         array $auth = [],
@@ -111,7 +111,7 @@ class Prometheus
         $minStep = $checkInterval > 0 ? $checkInterval : 1;
         $stepSeconds = max($stepSeconds, $minStep);
 
-        return (int)round($stepSeconds) . 's';
+        return (int)ceil($stepSeconds) . 's';
     }
 
     /**
@@ -224,7 +224,7 @@ class Prometheus
         $default = [
             'api_url' => 'http://localhost:9090',
             'api_timeout' => 10,
-            'api_max_data_points' => 10000,
+            'api_max_data_points' => 5500,
             'api_tls_insecure' => false,
             'api_use_otel_names' => false,
             'api_auth_method' => 'none',
