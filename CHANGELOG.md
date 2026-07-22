@@ -3,6 +3,7 @@
 ## v0.2.1
 
 - Fix issues with different service.version labels
+- Fix default max_data_points not handling large amounts of data
 
 ## v0.2.0
 
