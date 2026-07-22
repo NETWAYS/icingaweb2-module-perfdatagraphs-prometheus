@@ -128,7 +128,7 @@ class PerfdataGraphsPrometheusConfigForm extends ConfigForm
                     . ' The module will use the step parameter to downsample to this number.'
             ),
             'required' => false,
-            'placeholder' => 10000,
+            'placeholder' => 5500,
             'validators' => [$greaterThanValidator],
         ]);
 
@@ -223,7 +223,7 @@ class PerfdataGraphsPrometheusConfigForm extends ConfigForm
         // Hint: We use a "skip TLS" logic in the UI, but Guzzle uses "verify TLS"
         $tlsVerify = !(bool) $form->getValue('prometheus_api_tls_insecure', false);
         $useOtelNames = (bool) $form->getValue('prometheus_api_use_otel_names', false);
-        $maxDataPoints = (int) $form->getValue('prometheus_api_max_data_points', 10000);
+        $maxDataPoints = (int) $form->getValue('prometheus_api_max_data_points', 5500);
         // Auth values
         $authMethod = $form->getValue('prometheus_api_auth_method', 'none');
         $authTokenType = $form->getValue('prometheus_api_auth_tokentype', 'Bearer');
