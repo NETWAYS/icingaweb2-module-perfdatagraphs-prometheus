@@ -140,8 +140,15 @@ class Prometheus
         $end = $endTime->getTimestamp();
         $step = $this->calculateSteps($start, $end, $this->maxDataPoints, $checkInterval);
 
-        // To avoid issues when a check interval is higher than Prometheus lookback-delta
-        $q = sprintf('last_over_time(%s[%s])', $q, $step);
+        // To avoid issues when a check interval is higher than Prometheus lookback-delta.
+        // The aggregation with the reduced label set - all required by Transformer - allows merging metrics with
+        // different labels, such as "service.version" after an Icinga 2 upgrade.
+        $q = sprintf(
+            'avg by (__name__, %s, unit, threshold_type) (last_over_time(%s[%s]))',
+            $this->useOtelNames ? Icinga2Fields::LABEL_NAME_DOT : Icinga2Fields::LABEL_NAME,
+            $q,
+            $step
+        );
 
         $query = [
             'query' => [
