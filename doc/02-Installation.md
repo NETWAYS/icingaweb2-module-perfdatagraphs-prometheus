@@ -16,11 +16,11 @@ To install this module, follow the setup instructions for the **extras** reposit
 
 ## From source
 
-1. Clone a Icinga Web Performance Data Graphs Backend repository into `/usr/share/icingaweb2/modules/perfdatagraphsprometheus/`
+1. Clone the Icinga Web Performance Data Graphs Backend repository into `/usr/share/icingaweb2/modules/perfdatagraphsprometheus/`
 
 2. Enable the module using the `Configuration → Modules` menu or the `icingacli`
 
-3. Configure the Prometheus URL, organization, bucket and authentication using the `Configuration → Modules` menu
+3. Configure the Prometheus URL and authentication using the `Configuration → Modules` menu
 
 # Configuration
 
@@ -30,7 +30,7 @@ To install this module, follow the setup instructions for the **extras** reposit
 |-----------------------------|----------------------------------------------------------------------------------------------------------|--------------------------|
 | api_url              | The URL for Prometheus including the scheme                                                                | http://localhost:9090  |
 | api_timeout          | HTTP timeout for the API in seconds. Should be higher than 0                                             | `10` (seconds)           |
-| api_max_data_points  | The maximum numbers of datapoints each series returns. Aggregation can be disabled by setting this to 0. | `10000`                  |
+| api_max_data_points  | The maximum numbers of datapoints each series returns.                                                   | `10000`                  |
 | api_tls_insecure     | Skip the TLS verification                                                                                | `false` (unchecked)      |
 | api_use_otel_names     | Use dot-separated names for metrics and label queries. E.g. state_check.perfdata instead of state_check_perfdata | `false` (unchecked)      |
 | api_auth_method     | Authentication method to use for the API                                                                  | none (none,basic,token) |
@@ -43,7 +43,7 @@ To install this module, follow the setup instructions for the **extras** reposit
 | api_auth_mtls_key   | Path to the client key file                                                                                  |  |
 | api_auth_mtls_ca    | Path to the client CA file                                                                                   |  |
 
-`max_data_points` is used for downsampling data. It uses the `step` parameter of the `/api/v1/query_range` endpoint.
+`api_max_data_points` is used for downsampling data. It uses the `step` parameter of the `/api/v1/query_range` endpoint.
 
 ## Prometheus
 
