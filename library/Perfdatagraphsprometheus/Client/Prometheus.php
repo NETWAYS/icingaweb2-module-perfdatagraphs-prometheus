@@ -132,19 +132,22 @@ class Prometheus
 
         $url = $this->URL . $this::QUERYRANGE_ENDPOINT;
 
+        // The base query to return both the perfdata and threshold metrics at once,
+        // with the host_name, service_name and command_name as selector.
         if ($this->useOtelNames) {
             $q = Icinga2Fields::baseQueryWithDots($hostName, $serviceName, $checkCommand, $isHostCheck, $includeMetrics, $excludeMetrics);
         } else {
             $q = Icinga2Fields::baseQueryWithUnderscores($hostName, $serviceName, $checkCommand, $isHostCheck, $includeMetrics, $excludeMetrics);
         }
 
+        // We use an increasing step size to reduce the data based on the length of the time range.
         $start = $startTime->getTimestamp();
         $end = $endTime->getTimestamp();
         $step = $this->calculateSteps($start, $end, $this->maxDataPoints, $checkInterval);
 
-        // To avoid issues when a check interval is higher than Prometheus lookback-delta.
         // The aggregation with the reduced label set - all required by Transformer - allows merging metrics with
-        // different labels, such as "service.version" after an Icinga 2 upgrade.
+        // different labels, such as "service.version" e.g. after an Icinga2 upgrade.
+        // We use last_over_time to avoid issues when a check interval is higher than Prometheus lookback-delta.
         $q = sprintf(
             'avg by (__name__, %s, unit, threshold_type) (last_over_time(%s[%s]))',
             Icinga2Fields::LABEL_NAME,
@@ -181,6 +184,7 @@ class Prometheus
     public function status(): array
     {
         $l = $this->useOtelNames ? Icinga2Fields::METRIC_CHECK_DOT : Icinga2Fields::METRIC_CHECK;
+        // Just a simple query to see if we can talk to the API and get a response
         $query = [
             'query' => [
                 'query' => 'count({__name__="'. $l .'"})',

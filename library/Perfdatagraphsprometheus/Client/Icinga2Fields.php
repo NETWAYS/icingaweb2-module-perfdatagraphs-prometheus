@@ -69,7 +69,7 @@ final class Icinga2Fields
      * baseQueryWithDots generates a query with the OTel style dots
      * in the names.
      *
-     * {__name__=~"state.check.perfdata|state.check.threshold",
+     * {__name__=~"state_check.perfdata|state_check.threshold",
      * "icinga2.command.name"="procs", "icinga2.host.name"="example", "icinga2.service.name"="procs"}
      */
     public static function baseQueryWithDots(
