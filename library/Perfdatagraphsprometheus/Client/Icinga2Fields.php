@@ -26,6 +26,11 @@ final class Icinga2Fields
     {
     }
 
+    private static function escapeLabel(string $s): string
+    {
+        return addcslashes($s, '"\\');
+    }
+
     /**
      * baseQueryWithUnderscores generates a query with the Prometheus style underscores
      * in the names.
@@ -43,22 +48,22 @@ final class Icinga2Fields
     ): string {
         $q = '{';
         $q .= '__name__=~"' . self::METRIC_CHECK .'|' . self::METRIC_THRESHOLD .'"';
-        $q .= ', '. self::COMMAND_NAME . '="' . $checkCommand . '"';
-        $q .= ', '. self::HOST_NAME . '="' . $hostName . '"';
+        $q .= ', "'. self::COMMAND_NAME . '"="' . self::escapeLabel($checkCommand) . '"';
+        $q .= ', "'. self::HOST_NAME . '"="' . self::escapeLabel($hostName) . '"';
 
         if (count($includeMetrics) > 0) {
             // includeMetrics/excludeMetrics only support a '*' wildcard which we need to translate here
             $includes = array_map(fn($label) => str_replace('*', '.*', $label), $includeMetrics);
-            $q .= ', '. self::LABEL_NAME .'=~"' . implode('|', $includes) . '"';
+            $q .= ', "'. self::LABEL_NAME .'"=~"' . implode('|', $includes) . '"';
         }
 
         if (count($excludeMetrics) > 0) {
             $excludes = array_map(fn($label) => str_replace('*', '.*', $label), $excludeMetrics);
-            $q .= ', '. self::LABEL_NAME .'!~"' . implode('|', $excludes) . '"';
+            $q .= ', "'. self::LABEL_NAME .'"!~"' . implode('|', $excludes) . '"';
         }
 
         if (!$isHostCheck) {
-            $q .= ', '. self::SERVICE_NAME .'="' . $serviceName . '"';
+            $q .= ', "'. self::SERVICE_NAME .'"="' . self::escapeLabel($serviceName) . '"';
         }
 
         $q .= '}';
@@ -83,8 +88,8 @@ final class Icinga2Fields
     ): string {
         $q = '{';
         $q .= '__name__=~"' . self::METRIC_CHECK_DOT .'|' . self::METRIC_THRESHOLD_DOT .'"';
-        $q .= ', "'. self::COMMAND_NAME_DOT . '"="' . $checkCommand . '"';
-        $q .= ', "'. self::HOST_NAME_DOT . '"="' . $hostName . '"';
+        $q .= ', "'. self::COMMAND_NAME_DOT . '"="' . self::escapeLabel($checkCommand) . '"';
+        $q .= ', "'. self::HOST_NAME_DOT . '"="' . self::escapeLabel($hostName) . '"';
 
         if (count($includeMetrics) > 0) {
             // includeMetrics/excludeMetrics only support a '*' wildcard which we need to translate here
@@ -98,7 +103,7 @@ final class Icinga2Fields
         }
 
         if (!$isHostCheck) {
-            $q .= ', "'. self::SERVICE_NAME_DOT .'"="' . $serviceName . '"';
+            $q .= ', "'. self::SERVICE_NAME_DOT .'"="' . self::escapeLabel($serviceName) . '"';
         }
 
         $q .= '}';
