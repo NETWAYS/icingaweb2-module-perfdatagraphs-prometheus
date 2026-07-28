@@ -156,7 +156,7 @@ class Prometheus
         );
 
         $query = [
-            'query' => [
+            'form_params' => [
                 'query' => $q,
                 'start' => $start,
                 'end' => $end,

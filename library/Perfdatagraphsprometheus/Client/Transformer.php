@@ -43,7 +43,7 @@ class Transformer
             // Do we have a dataset already?
             $dataset = $pfr->getDataset($label);
             // if not we create a new one
-            if (empty($dataset)) {
+            if ($dataset === null) {
                 $unit = $result['metric']['unit'] ?? '';
                 $dataset = new PerfdataSet($label, $unit);
                 $pfr->addDataset($dataset);
