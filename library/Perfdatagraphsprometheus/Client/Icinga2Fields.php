@@ -47,6 +47,7 @@ final class Icinga2Fields
         $q .= ', '. self::HOST_NAME . '="' . $hostName . '"';
 
         if (count($includeMetrics) > 0) {
+            // includeMetrics/excludeMetrics only support a '*' wildcard which we need to translate here
             $includes = array_map(fn($label) => str_replace('*', '.*', $label), $includeMetrics);
             $q .= ', '. self::LABEL_NAME .'=~"' . implode('|', $includes) . '"';
         }
@@ -86,6 +87,7 @@ final class Icinga2Fields
         $q .= ', "'. self::HOST_NAME_DOT . '"="' . $hostName . '"';
 
         if (count($includeMetrics) > 0) {
+            // includeMetrics/excludeMetrics only support a '*' wildcard which we need to translate here
             $includes = array_map(fn($label) => str_replace('*', '.*', $label), $includeMetrics);
             $q .= ', "'. self::LABEL_NAME .'"=~"' . implode('|', $includes) . '"';
         }
