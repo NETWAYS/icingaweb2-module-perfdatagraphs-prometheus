@@ -156,6 +156,7 @@ class Prometheus
         );
 
         $query = [
+            // We're using a Form-encoded POST body because who know how long the query will be
             'form_params' => [
                 'query' => $q,
                 'start' => $start,
