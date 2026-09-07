@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.2.2
+
+- Escape PromQL parameters
+- Use form_params instead of URL params
+
 ## v0.2.1
 
 - Fix issues with different service.version labels
