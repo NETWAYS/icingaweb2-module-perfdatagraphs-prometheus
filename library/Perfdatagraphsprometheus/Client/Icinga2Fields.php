@@ -58,11 +58,13 @@ final class Icinga2Fields
         $q .= '"' . $hostKey . '"="' . self::escapeLabel($hostValue) . '"';
 
         if (!empty($includeMetrics)) {
+            // Perfdatagraphs label include only supports * as wildcard character
             $includes = array_map(fn($label) => str_replace('*', '.*', $label), $includeMetrics);
             $q .= ', "' . $labelKey . '"=~"' . implode('|', $includes) . '"';
         }
 
         if (!empty($excludeMetrics)) {
+            // Perfdatagraphs label exclude only supports * as wildcard character
             $excludes = array_map(fn($label) => str_replace('*', '.*', $label), $excludeMetrics);
             $q .= ', "' . $labelKey . '"!~"' . implode('|', $excludes) . '"';
         }

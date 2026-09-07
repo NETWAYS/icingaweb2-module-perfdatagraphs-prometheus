@@ -223,7 +223,7 @@ class Prometheus
      * @param Config $moduleConfig configuration to load (used for testing)
      * @return $this
      */
-    public static function fromConfig(Config $moduleConfig = null): Prometheus
+    public static function fromConfig(?Config $moduleConfig = null): Prometheus
     {
         $default = [
             'api_url' => 'http://localhost:9090',
