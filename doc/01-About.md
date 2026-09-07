@@ -11,4 +11,4 @@ It is meant to be used with the Icinga2 OTLPMetricsWriter.
 Note that we do not intend to support multiple configurable Prometheus targets.
 High availability for Prometheus needs to be implemented outside of this module and expose a single URL endpoint for this module.
 
-We recommend a load balancer or proxy layer for redundancy. A [Thanos](https://thanos.io) query-frontend with multiple sidecars can also be used.
+We recommend a load balancer or proxy layer for redundancy. A [Thanos](https://thanos.io) Querier with multiple sidecars can also be used.

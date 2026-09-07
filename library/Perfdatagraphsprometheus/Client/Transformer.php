@@ -18,6 +18,7 @@ use SplFixedArray;
  */
 class Transformer
 {
+    // toFloat makes sure timeseries only contain float values or null in case there are no values
     protected static function toFloat(mixed $f): ?float
     {
         return is_numeric($f) ? (float) $f : null;
