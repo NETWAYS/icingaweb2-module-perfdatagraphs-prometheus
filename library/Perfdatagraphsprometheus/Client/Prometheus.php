@@ -21,6 +21,8 @@ class Prometheus
 {
     protected const QUERY_ENDPOINT = '/api/v1/query';
     protected const QUERYRANGE_ENDPOINT = '/api/v1/query_range';
+    // Share of the check interval added to the last_over_time window, to absorb the check execution time.
+    protected const WINDOW_TOLERANCE = 0.1;
 
     protected \GuzzleHttp\Client $client;
     protected string $URL;
@@ -148,11 +150,14 @@ class Prometheus
         // The aggregation with the reduced label set - all required by Transformer - allows merging metrics with
         // different labels, such as "service.version" e.g. after an Icinga2 upgrade.
         // We use last_over_time to avoid issues when a check interval is higher than Prometheus lookback-delta.
+        // The window is wider than the step: the real sample spacing is the check interval plus the execution time,
+        // so a window of exactly one step drifts against the samples and returns empty windows (gaps).
+        $window = (int)$step + (int)ceil($checkInterval * $this::WINDOW_TOLERANCE);
         $q = sprintf(
-            'avg by (__name__, %s, unit, threshold_type) (last_over_time(%s[%s]))',
+            'avg by (__name__, %s, unit, threshold_type) (last_over_time(%s[%ds]))',
             Icinga2Fields::LABEL_NAME,
             $q,
-            $step
+            $window
         );
 
         $query = [
