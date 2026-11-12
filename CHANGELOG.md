@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.2.3
+
+- Widen last_over_time window to absorb check execution time
+
 ## v0.2.2
 
 - Escape PromQL parameters
